@@ -236,7 +236,7 @@ public class OnlineCoursesAnalyzer {
 //            System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));
         }
 //        return list.stream().distinct().sorted().toList();
-        return list
+        return list;
 
     }
 
