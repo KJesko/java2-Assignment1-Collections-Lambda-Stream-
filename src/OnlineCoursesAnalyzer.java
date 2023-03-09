@@ -10,7 +10,7 @@ class DataEntity {
     String CourseNumber; // 1.the unique id of each course
     Calendar launchDate;  // 2.the launch date of each course
     String courseTitle; // 3.the title of each course
-    String instructors;// 4.the instructors of each course
+    String instructors; // 4.the instructors of each course
     String courseSubject; //5.the subject of each course
     int Year; //6.the last time of each course
     int honorCodeCertificates;//7.with (1), without (0).
@@ -138,13 +138,12 @@ class DataEntity {
 
 class CourseHelper {
     static Map<String, CourseHelper> helperMap;
-    private
-    Calendar launchDate = Calendar.getInstance();
-    String courseTitle;
-    int participantsTotal;
-    double malePercentAverage;
-    double ageAverage;
-    double degreePercentAverage;
+    private Calendar launchDate = Calendar.getInstance();
+    private String courseTitle;
+    private int participantsTotal;
+    private double malePercentAverage;
+    private double ageAverage;
+    private double degreePercentAverage;
 
 
     public CourseHelper() {
@@ -404,11 +403,15 @@ public class OnlineCoursesAnalyzer {
      */
     public List<String> recommendCourses(int age, int gender, int isBachelorOrHigher) {
         List<CourseHelper> courseInfos = dataList.stream().map(OnlineCoursesAnalyzer::generateHelper).toList();
-        return courseInfos.stream().sorted((
-                (o1, o2) ->
-                (int) (o1.calculateSimilarityValue(age,gender,isBachelorOrHigher)
-                -o2.calculateSimilarityValue(age,gender,isBachelorOrHigher))))
-                .map(CourseHelper::getCourseTitle).distinct().toList();
+
+
+        return courseInfos.stream().sorted((o1, o2) -> {
+            double diff = o1.calculateSimilarityValue(age, gender, isBachelorOrHigher)
+                    - o2.calculateSimilarityValue(age, gender, isBachelorOrHigher);
+            if (diff > 0) return 1;
+            else if (diff < 0) return -1;
+            else return o1.getCourseTitle().compareTo(o2.getCourseTitle());
+        }).map(CourseHelper::getCourseTitle).distinct().toList();
 
     }
 

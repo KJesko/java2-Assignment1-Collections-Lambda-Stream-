@@ -21,5 +21,8 @@ public class Main {
         System.out.println(onlineCoursesAnalyzer.getCourses(20,"hours"));
         System.out.println("--------test4.2 pass--------");
         System.out.println(onlineCoursesAnalyzer.getCourses(5,"participants"));
+        System.out.println("--------test6 going--------");
+
+        System.out.println(onlineCoursesAnalyzer.recommendCourses(18,1,1));
     }
 }
