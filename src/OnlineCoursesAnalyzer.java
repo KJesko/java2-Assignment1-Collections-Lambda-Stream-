@@ -137,7 +137,7 @@ class DataEntity {
 }
 
 class CourseHelper {
-    static Map<String, CourseHelper> helperMap;
+    static Map<String, CourseHelper> helperMap = new HashMap<>();
     private Calendar launchDate = Calendar.getInstance();
     private String courseTitle;
     private int participantsTotal;
@@ -208,10 +208,6 @@ class CourseHelper {
                 + Math.pow((gender * 100 - this.malePercentAverage), 2)
                 + Math.pow((isBachelorOrHigher * 100 - this.degreePercentAverage), 2);
     }
-
-    ;
-
-
 }
 
 public class OnlineCoursesAnalyzer {
@@ -335,33 +331,40 @@ public class OnlineCoursesAnalyzer {
      */
     public List<String> getCourses(int topK, String by) {
         List<String> list = new ArrayList<>();
+        Map<String, Double> tempMap = new HashMap<>();
         if (by.equals("hours")) {
-            Map<String, Double> map = dataList.stream()
-                    .collect(Collectors.groupingBy(DataEntity::getCourseTitle,
-                            Collectors.summingDouble(DataEntity::getTotalCourseHours)));
-            map = map.entrySet().stream()
-                    .sorted(Map.Entry.<String, Double>comparingByValue(Comparator.reverseOrder())
-                            .thenComparing(Map.Entry.comparingByKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
-//            System.out.println("-------------------");
-//            System.out.println(map);
-//            System.out.println("-------------------");
-            list = map.keySet().stream().limit(topK).collect(Collectors.toList());
-//            System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));
+            dataList.forEach((DataEntity dataEntity)->{
+                double hours = 0;
+                String title = dataEntity.getCourseTitle();
+                if (tempMap.containsKey(title)){
+                    hours = tempMap.get(title);
+                }
+                hours = Math.max(dataEntity.getTotalCourseHours(), hours);
+                tempMap.put(title,hours);
+            });
+            //            System.out.println("-------------------");
+            //            System.out.println(map);
+            //            System.out.println("-------------------");
         } else if (by.equals("participants")) {
-            Map<String, Double> map = dataList.stream()
-                    .collect(Collectors.groupingBy(DataEntity::getCourseTitle,
-                            Collectors.summingDouble(DataEntity::getParticipants)));
-            map = map.entrySet().stream()
-                    .sorted(Map.Entry.<String, Double>comparingByValue(Comparator.reverseOrder())
-                            .thenComparing(Map.Entry.comparingByKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
-            list = map.keySet().stream().limit(topK).collect(Collectors.toList());
-
-            list = map.keySet().stream().limit(topK).collect(Collectors.toList());
+            dataList.forEach((DataEntity dataEntity)->{
+                double participants = 0;
+                String title = dataEntity.getCourseTitle();
+                if (tempMap.containsKey(title)){
+                    participants = tempMap.get(title);
+                }
+                participants = Math.max(dataEntity.getParticipants(), participants);
+                tempMap.put(title,participants);
+            });
 //            System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));
         }
-//        return list.stream().distinct().sorted().toList();
+
+        Map<String, Double> map = tempMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
+        list = map.keySet().stream().limit(topK).collect(Collectors.toList());
+        System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));//
+
         return list;
 
     }
@@ -403,7 +406,15 @@ public class OnlineCoursesAnalyzer {
      */
     public List<String> recommendCourses(int age, int gender, int isBachelorOrHigher) {
         List<CourseHelper> courseInfos = dataList.stream().map(OnlineCoursesAnalyzer::generateHelper).toList();
+        Map<String,Double> titleAndSimilarityValues = CourseHelper.helperMap.values().stream()
+                .collect(Collectors.toMap(CourseHelper::getCourseTitle,c -> c.calculateSimilarityValue(age, gender, isBachelorOrHigher),(o1,o2)->o1<o2?o1:o2));
 
+        titleAndSimilarityValues = titleAndSimilarityValues.entrySet().stream()
+                .sorted(Map.Entry.<String,Double>comparingByValue()
+                        .thenComparing(Map.Entry.comparingByKey())).limit(10)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
+
+        System.out.println(titleAndSimilarityValues);
 
         return courseInfos.stream().sorted((o1, o2) -> {
             double diff = o1.calculateSimilarityValue(age, gender, isBachelorOrHigher)
@@ -411,7 +422,7 @@ public class OnlineCoursesAnalyzer {
             if (diff > 0) return 1;
             else if (diff < 0) return -1;
             else return o1.getCourseTitle().compareTo(o2.getCourseTitle());
-        }).map(CourseHelper::getCourseTitle).distinct().toList();
+        }).map(CourseHelper::getCourseTitle).distinct().limit(10).collect(Collectors.toList());
 
     }
 
@@ -436,7 +447,9 @@ public class OnlineCoursesAnalyzer {
         if (CourseHelper.helperMap.containsKey(courseId)) {
             courseInfo = CourseHelper.helperMap.get(courseId);
         } else courseInfo = new CourseHelper();
+
         int newParticipantsTotal = courseInfo.getParticipantsTotal() + dataEntity.getParticipants();
+
         double averAge = courseInfo.getAgeAverage() * ((double) courseInfo.getParticipantsTotal() / newParticipantsTotal)
                 + dataEntity.getMedianAge() * ((double) dataEntity.getParticipants() / newParticipantsTotal);
         double averMalePercent = courseInfo.getMalePercentAverage() * ((double) courseInfo.getParticipantsTotal() / newParticipantsTotal)
