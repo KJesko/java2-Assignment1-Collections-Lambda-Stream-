@@ -70,7 +70,7 @@ class DataEntity {
     }
 
     public String[] getInstructors() {
-        return strList.get(4).split(",");
+        return strList.get(4).replace(", ",",").split(",");
     }
 
     public double getTotalCourseHours() {
@@ -137,10 +137,11 @@ class DataEntity {
 }
 
 class CourseHelper {
-    static Map<String, CourseHelper> helperMap = new HashMap<>();
+    static Map<String, CourseHelper> helperMap;
     private Calendar launchDate = Calendar.getInstance();
     private String courseTitle;
     private int participantsTotal;
+    
     private double malePercentAverage;
     private double ageAverage;
     private double degreePercentAverage;
@@ -363,7 +364,7 @@ public class OnlineCoursesAnalyzer {
                         .thenComparing(Map.Entry.comparingByKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
         list = map.keySet().stream().limit(topK).collect(Collectors.toList());
-        System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));//
+//        System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));//
 
         return list;
 
@@ -405,16 +406,21 @@ public class OnlineCoursesAnalyzer {
      * @return return the top 10 courses with the smallest similarity value.
      */
     public List<String> recommendCourses(int age, int gender, int isBachelorOrHigher) {
-        List<CourseHelper> courseInfos = dataList.stream().map(OnlineCoursesAnalyzer::generateHelper).toList();
+        CourseHelper.helperMap = new HashMap<>();
+        dataList.forEach(OnlineCoursesAnalyzer::generateParticipantInHelper);
+        List<CourseHelper> courseInfos = dataList.stream().map(OnlineCoursesAnalyzer::generateDataInHelper).toList();
         Map<String,Double> titleAndSimilarityValues = CourseHelper.helperMap.values().stream()
                 .collect(Collectors.toMap(CourseHelper::getCourseTitle,c -> c.calculateSimilarityValue(age, gender, isBachelorOrHigher),(o1,o2)->o1<o2?o1:o2));
 
         titleAndSimilarityValues = titleAndSimilarityValues.entrySet().stream()
                 .sorted(Map.Entry.<String,Double>comparingByValue()
-                        .thenComparing(Map.Entry.comparingByKey())).limit(10)
+                        .thenComparing(Map.Entry.comparingByKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
 
-        System.out.println(titleAndSimilarityValues);
+        System.out.println(titleAndSimilarityValues.keySet());
+        System.out.println(titleAndSimilarityValues.get("Poetry in America: Emily Dickinson"));
+        System.out.println(titleAndSimilarityValues.values());
+        System.out.println(CourseHelper.helperMap.get("AMPOx.4").getParticipantsTotal());
 
         return courseInfos.stream().sorted((o1, o2) -> {
             double diff = o1.calculateSimilarityValue(age, gender, isBachelorOrHigher)
@@ -441,24 +447,25 @@ public class OnlineCoursesAnalyzer {
 
     }
 
-    public static CourseHelper generateHelper(DataEntity dataEntity) {
+    public static void generateParticipantInHelper(DataEntity dataEntity) {
         String courseId = dataEntity.getCourseNumber();
         CourseHelper courseInfo;
         if (CourseHelper.helperMap.containsKey(courseId)) {
             courseInfo = CourseHelper.helperMap.get(courseId);
         } else courseInfo = new CourseHelper();
+        courseInfo.setParticipantsTotal(courseInfo.getParticipantsTotal()+1);
+        CourseHelper.helperMap.put(courseId, courseInfo);
 
-        int newParticipantsTotal = courseInfo.getParticipantsTotal() + dataEntity.getParticipants();
+    }
 
-        double averAge = courseInfo.getAgeAverage() * ((double) courseInfo.getParticipantsTotal() / newParticipantsTotal)
-                + dataEntity.getMedianAge() * ((double) dataEntity.getParticipants() / newParticipantsTotal);
-        double averMalePercent = courseInfo.getMalePercentAverage() * ((double) courseInfo.getParticipantsTotal() / newParticipantsTotal)
-                + dataEntity.getMalePercent() * ((double) dataEntity.getParticipants() / newParticipantsTotal);
-        double averDegreePercent = courseInfo.getDegreePercentAverage() * ((double) courseInfo.getParticipantsTotal() / newParticipantsTotal)
-                + dataEntity.getBachelorDegreeOrHigherPercent() * ((double) dataEntity.getParticipants() / newParticipantsTotal);
+    public static CourseHelper generateDataInHelper(DataEntity dataEntity) {
+        String courseId = dataEntity.getCourseNumber();
+        CourseHelper courseInfo = CourseHelper.helperMap.get(courseId);
+        double averAge = courseInfo.getAgeAverage() + dataEntity.getMedianAge() * ((double) 1 / courseInfo.getParticipantsTotal());
+        double averMalePercent = courseInfo.getMalePercentAverage() + dataEntity.getMalePercent() * ((double) 1 / courseInfo.getParticipantsTotal());
+        double averDegreePercent = courseInfo.getDegreePercentAverage() + dataEntity.getBachelorDegreeOrHigherPercent() * ((double) 1 / courseInfo.getParticipantsTotal());
 
 
-        courseInfo.setParticipantsTotal(newParticipantsTotal);
         courseInfo.setAgeAverage(averAge);
         courseInfo.setMalePercentAverage(averMalePercent);
         courseInfo.setDegreePercentAverage(averDegreePercent);
@@ -467,9 +474,6 @@ public class OnlineCoursesAnalyzer {
             courseInfo.setLaunchDate(dataEntity.getLaunchDate());
         }
 
-        CourseHelper.helperMap.put(courseId, courseInfo);
         return courseInfo;
     }
-
-
 }

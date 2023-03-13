@@ -17,12 +17,18 @@ public class Main {
         System.out.println(onlineCoursesAnalyzer.getPtcpCountByInstAndSubject());
         System.out.println("--------test3 may pass--------");
         System.out.println(onlineCoursesAnalyzer.getCourseListOfInstructor());
+
         System.out.println("--------test4.1 pass--------");
         System.out.println(onlineCoursesAnalyzer.getCourses(20,"hours"));
         System.out.println("--------test4.2 pass--------");
         System.out.println(onlineCoursesAnalyzer.getCourses(5,"participants"));
         System.out.println("--------test6 going--------");
+        System.out.println(onlineCoursesAnalyzer.recommendCourses(30,0,1));
 
-        System.out.println(onlineCoursesAnalyzer.recommendCourses(25,1,1));
+
+        System.out.println("--------test3 continue-----------------------------------------------------");
+
+        System.out.println(onlineCoursesAnalyzer.getCourseListOfInstructor().keySet());
+
     }
 }
