@@ -6,30 +6,30 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class DataEntity {
-    String institution; // 0.online course holders
-    String CourseNumber; // 1.the unique id of each course
-    Calendar launchDate;  // 2.the launch date of each course
-    String courseTitle; // 3.the title of each course
-    String instructors; // 4.the instructors of each course
-    String courseSubject; //5.the subject of each course
-    int Year; //6.the last time of each course
-    int honorCodeCertificates;//7.with (1), without (0).
-    int participants; //8.(Course Content Accessed)the number of participants who have accessed the course
-    int audited; //9.(> 50% Course Content Accessed) the number of participants who have audited more than 50% of the course
-    int certified; //10.Total number of votes
-    double auditedPercent;//11.the percent of the audited
-    double certifiedPercent;//12.the percent of the certified
-
-    double percentCertifiedAudited; //13.the percent of the certified with accessing the course more than 50%
-    double playedVideoPercent; //14.the percent of playing video
-    double postedInForumPercent; //15.the percent of posting in forum
-    double gradeHigherThanZeroPercent; //16.the percent of grade higher than zero
-    double totalCourseHours; //17.total course hours(per 1000)
-    double MedianHoursForCertification; //18.median hours for certification
-    double medianAge; //19.median age of the participants
-    double MalePercent; //20.the percent of the male
-    double FemalePercent; //21.the percent of the female
-    double BachelorDegreeOrHigherPercent; //22.the percent of bachelor's degree of higher
+//    String institution; // 0.online course holders
+//    String CourseNumber; // 1.the unique id of each course
+//    Calendar launchDate;  // 2.the launch date of each course
+//    String courseTitle; // 3.the title of each course
+//    String instructors; // 4.the instructors of each course
+//    String courseSubject; //5.the subject of each course
+//    int Year; //6.the last time of each course
+//    int honorCodeCertificates;//7.with (1), without (0).
+//    int participants; //8.(Course Content Accessed)the number of participants who have accessed the course
+//    int audited; //9.(> 50% Course Content Accessed) the number of participants who have audited more than 50% of the course
+//    int certified; //10.Total number of votes
+//    double auditedPercent;//11.the percent of the audited
+//    double certifiedPercent;//12.the percent of the certified
+//
+//    double percentCertifiedAudited; //13.the percent of the certified with accessing the course more than 50%
+//    double playedVideoPercent; //14.the percent of playing video
+//    double postedInForumPercent; //15.the percent of posting in forum
+//    double gradeHigherThanZeroPercent; //16.the percent of grade higher than zero
+//    double totalCourseHours; //17.total course hours(per 1000)
+//    double MedianHoursForCertification; //18.median hours for certification
+//    double medianAge; //19.median age of the participants
+//    double MalePercent; //20.the percent of the male
+//    double FemalePercent; //21.the percent of the female
+//    double BachelorDegreeOrHigherPercent; //22.the percent of bachelor's degree of higher
 
     List<String> strList = new ArrayList<>();
 
@@ -70,7 +70,7 @@ class DataEntity {
     }
 
     public String[] getInstructors() {
-        return strList.get(4).replace(", ",",").split(",");
+        return strList.get(4).replace(", ", ",").split(",");
     }
 
     public double getTotalCourseHours() {
@@ -141,7 +141,7 @@ class CourseHelper {
     private Calendar launchDate = Calendar.getInstance();
     private String courseTitle;
     private int participantsTotal;
-    
+
     private double malePercentAverage;
     private double ageAverage;
     private double degreePercentAverage;
@@ -334,27 +334,27 @@ public class OnlineCoursesAnalyzer {
         List<String> list = new ArrayList<>();
         Map<String, Double> tempMap = new HashMap<>();
         if (by.equals("hours")) {
-            dataList.forEach((DataEntity dataEntity)->{
+            dataList.forEach((DataEntity dataEntity) -> {
                 double hours = 0;
                 String title = dataEntity.getCourseTitle();
-                if (tempMap.containsKey(title)){
+                if (tempMap.containsKey(title)) {
                     hours = tempMap.get(title);
                 }
                 hours = Math.max(dataEntity.getTotalCourseHours(), hours);
-                tempMap.put(title,hours);
+                tempMap.put(title, hours);
             });
             //            System.out.println("-------------------");
             //            System.out.println(map);
             //            System.out.println("-------------------");
         } else if (by.equals("participants")) {
-            dataList.forEach((DataEntity dataEntity)->{
+            dataList.forEach((DataEntity dataEntity) -> {
                 double participants = 0;
                 String title = dataEntity.getCourseTitle();
-                if (tempMap.containsKey(title)){
+                if (tempMap.containsKey(title)) {
                     participants = tempMap.get(title);
                 }
                 participants = Math.max(dataEntity.getParticipants(), participants);
-                tempMap.put(title,participants);
+                tempMap.put(title, participants);
             });
 //            System.out.println(map.values().stream().limit(topK).collect(Collectors.toList()));
         }
@@ -409,11 +409,11 @@ public class OnlineCoursesAnalyzer {
         CourseHelper.helperMap = new HashMap<>();
         dataList.forEach(OnlineCoursesAnalyzer::generateParticipantInHelper);
         List<CourseHelper> courseInfos = dataList.stream().map(OnlineCoursesAnalyzer::generateDataInHelper).toList();
-        Map<String,Double> titleAndSimilarityValues = CourseHelper.helperMap.values().stream()
-                .collect(Collectors.toMap(CourseHelper::getCourseTitle,c -> c.calculateSimilarityValue(age, gender, isBachelorOrHigher),(o1,o2)->o1<o2?o1:o2));
+        Map<String, Double> titleAndSimilarityValues = CourseHelper.helperMap.values().stream()
+                .collect(Collectors.toMap(CourseHelper::getCourseTitle, c -> c.calculateSimilarityValue(age, gender, isBachelorOrHigher), (o1, o2) -> o1 < o2 ? o1 : o2));
 
         titleAndSimilarityValues = titleAndSimilarityValues.entrySet().stream()
-                .sorted(Map.Entry.<String,Double>comparingByValue()
+                .sorted(Map.Entry.<String, Double>comparingByValue()
                         .thenComparing(Map.Entry.comparingByKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
 
@@ -453,7 +453,7 @@ public class OnlineCoursesAnalyzer {
         if (CourseHelper.helperMap.containsKey(courseId)) {
             courseInfo = CourseHelper.helperMap.get(courseId);
         } else courseInfo = new CourseHelper();
-        courseInfo.setParticipantsTotal(courseInfo.getParticipantsTotal()+1);
+        courseInfo.setParticipantsTotal(courseInfo.getParticipantsTotal() + 1);
         CourseHelper.helperMap.put(courseId, courseInfo);
 
     }
