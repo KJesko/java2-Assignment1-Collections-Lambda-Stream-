@@ -14,13 +14,14 @@ class DataEntity {
 //    String courseSubject; //5.the subject of each course
 //    int Year; //6.the last time of each course
 //    int honorCodeCertificates;//7.with (1), without (0).
-//    int participants; //8.(Course Content Accessed)the number of participants who have accessed the course
-//    int audited; //9.(> 50% Course Content Accessed) the number of participants who have audited more than 50% of the course
+//    int participants; // 8.the number of participants who have accessed the course
+//    int audited; //9. the number of participants who have audited more than 50% of the course
 //    int certified; //10.Total number of votes
 //    double auditedPercent;//11.the percent of the audited
 //    double certifiedPercent;//12.the percent of the certified
-//
-//    double percentCertifiedAudited; //13.the percent of the certified with accessing the course more than 50%
+
+//    13.the percent of the certified with accessing the course more than 50%
+//    double percentCertifiedAudited;
 //    double playedVideoPercent; //14.the percent of playing video
 //    double postedInForumPercent; //15.the percent of posting in forum
 //    double gradeHigherThanZeroPercent; //16.the percent of grade higher than zero
@@ -44,7 +45,8 @@ class DataEntity {
         String[] strCalendar = strList.get(2).split("/");
         Calendar launchDate = Calendar.getInstance();
         try {
-            launchDate.set(Integer.parseInt(strCalendar[2]), Integer.parseInt(strCalendar[0]) - 1, Integer.parseInt(strCalendar[1]));
+            launchDate.set(Integer.parseInt(strCalendar[2]),
+                    Integer.parseInt(strCalendar[0]) - 1, Integer.parseInt(strCalendar[1]));
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             return Calendar.getInstance();
         }
@@ -440,7 +442,7 @@ public class OnlineCoursesAnalyzer {
 
     }
 
-    public static Map<String, Integer> sortMapByValue(Map<String, Integer> map) {//descending order
+    public static Map<String, Integer> sortMapByValue(Map<String, Integer> map) { //descending order
         return map.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()).thenComparing(Map.Entry.comparingByKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> newVal, LinkedHashMap::new));
